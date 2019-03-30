@@ -251,6 +251,8 @@ def play(player1, player2, generation):
                 game.player1_turn = not game.player1_turn
                 return game.player1_turn
 
+        if generation % RECORD_GEN == 0:
+            print("random ==", random_move)
 
         game.add_move(move)
 
@@ -258,7 +260,6 @@ def play(player1, player2, generation):
 
     game.player1_turn = not game.player1_turn
     if generation % RECORD_GEN == 0:
-        print("random ==", random_move)
         game.print_board()
         print(game.get_winner())
 
