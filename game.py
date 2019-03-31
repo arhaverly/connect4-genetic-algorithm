@@ -6,23 +6,23 @@ class Game():
         self.player1 = player1
         self.player2 = player2
 
-    def print_board(self):
+    def print_board(self, file):
         if self.player1_turn == True:
-            print('player1\'s turn')
+            file.write('player1\'s turn\n')
         else:
-            print('player2\'s turn')
+            file.write('player2\'s turn\n')
 
         for row in self.board:
             for col in row:
-                print(str(col), end='  ')
+                file.write(str(col) + '  ')
 
-            print()
+            file.write('\n')
 
-        print('-------------------')
+        file.write('-------------------\n')
         for i in range(7):
-            print(i, end='  ')
+            file.write(str(i) + '  ')
 
-        print()
+        file.write('\n')
 
     def set_board(self, board):
         self.board = board

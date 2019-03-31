@@ -7,7 +7,7 @@ import tensorflow as tf
 import numpy as np
 import argparse
 
-RECORD_GEN = 200
+RECORD_GEN = 20000
 
 def mutate_w_with_percent_change(p, add_sub_rand=True):
     #considering its 2d array
@@ -121,9 +121,6 @@ def main():
         B2_placeholder = tf.placeholder(tf.float32, shape=[num_class])
         B1_assign = tf.assign(B1, B1_placeholder)
         B2_assign = tf.assign(B2, B2_placeholder)
-        # W3 = tf.Variable(tf.random_normal([hidden_units2, num_class]))
-        # B3 = tf.Variable(tf.random_normal([num_class]))
-        # Y_ = tf.nn.softmax(tf.matmul(A2, W3) + B3, name="Y_")
 
         init = tf.global_variables_initializer()
         saver = tf.train.Saver(max_to_keep=POPULATION_SIZE)
@@ -140,55 +137,32 @@ def main():
     while True:
         generation_counter += 1
         fitness_data = []
+
+        file = None
+
         if generation_counter % RECORD_GEN == 0:
-            print('generation', generation_counter)
+            file = open('games_played/' + str(generation_counter), 'w')
+            file.write('generation ' + str(generation_counter) + '\n')
         for i in range(len(sessions)//2):
             ai1 = ai.AIPlayer(sessions[i], Y_index, Y_, W1, B1, W2, B2, X, generation_counter)
             ai2 = ai.AIPlayer(sessions[2*i], Y_index, Y_, W1, B1, W2, B2, X, generation_counter)
             if generation_counter % RECORD_GEN == 0:
-                print('#######', i, '#######')
-            player1_wins = play(ai1, ai2, generation_counter)
+                file.write('####### ' + str(i) + ' #######\n')
+            player1_wins = play(ai1, ai2, generation_counter, file)
+
+            if generation_counter % RECORD_GEN == 0:
+                if player1_wins:
+                    file.write('player1 wins\n')
+                else:
+                    file.write('player2 wins\n')
+
             if not player1_wins:
                 temp = sessions[i]
                 sessions[i] = sessions[2*i]
                 sessions[i] = temp
 
-            # while True:
-            #     inputs = game.get_input_to_algo()
-            #     # print(inputs)
-            #     predicted_action, p, w1, b1, w2, b2 = sess.run([Y_index, Y_,W1,B1,W2,B2], feed_dict={X:[inputs]})
-            #     # print(predicted_action, p,w1,b1,w2,b2)
-            #     done = game.step(action=predicted_action[0])
-            #     # game.render()
-            #     if game.get_fitness() > 9000:
-            #         # if flag:
-            #         print(" it's OVER 9000!!!!!!!!!!")
-            #         # flag = False
-            #         save_threshold = save_threshold + 1
-
-            #         if save_threshold > 100:
-            #             saver.save(sess, 'game_checkpoints/my_test_model',global_step=generation)
-            #             is_training_finished = True
-            #             print("Saved Ultimate CheckPoint")
-            #             break
-            #     if done:
-            #         fitness_episode = fitness_episode + game.get_fitness()
-            #         break
-            # if not flag:
-            #     break
-            #     # print(fitness_episode)
-            # fitness = fitness_episode / N_EPISODE
-            # fitness_data.append(fitness)
-        # print(loss_data)
         if is_training_finished:
             break
-
-        # sess_fit = zip(sessions, fitness_data)
-        # sess_fit = sorted(sess_fit, key=lambda tup: tup[1], reverse=True)
-        # sessions = [sess for sess, _ in sess_fit]
-        # fitness_data = [f for _, f in sess_fit]
-        # print("{} : {}".format(generation, fitness_data))
-        
 
         for sess in sessions[POPULATION_SIZE//2:]:
             sess.close()
@@ -202,7 +176,6 @@ def main():
                     w1_, w2_ = sessions[index].run([W1, W2])
                     w1_ = mutate_w_with_percent_change(w1_)
                     w2_ = mutate_w_with_percent_change(w2_)
-                    # print(w1_, w2)
                     sess.run([W1_assign, W2_assign],feed_dict={W1_placeholder:w1_, W2_placeholder:w2_})
 
                 if  np.random.random_sample() < B_MUTATION_PROBABILITY:
@@ -211,7 +184,6 @@ def main():
                     b2_ = mutate_b_with_percent_change(b2_)
                     sess.run([B1_assign, B2_assign],feed_dict={B1_placeholder:b1_, B2_placeholder:b2_})
 
-            # print(sessions[index].run([loss], feed_dict={x:[1,2,3,4], y:[-2,-3,-4,-5]} )[0])
             sessions.append(sess)
 
         for index in range(0, POPULATION_SIZE//4):
@@ -225,20 +197,22 @@ def main():
                 feed_dict={W1_placeholder:w1_, W2_placeholder:w2_, B1_placeholder:b1_, B2_placeholder:b2_})
             sessions.append(sess)
 
-        if generation_counter % 200 == 0:
+        if generation_counter % RECORD_GEN == 0:
             for i, sess in enumerate(sessions):
                 saver.save(sess, 'game_checkpoints/' + str(i))
+            
+            file.close()
 
 
 
 
-def play(player1, player2, generation):
+def play(player1, player2, generation, file):
     game = Game(player1, player2)
     game.player1_turn = random.randint(0, 1) == 0
 
     while not game.game_over():
         if generation % RECORD_GEN == 0:
-            game.print_board()
+            game.print_board(file)
 
         move = -1
         while not game.is_valid_move(move):
@@ -252,7 +226,7 @@ def play(player1, player2, generation):
                 return game.player1_turn
 
         if generation % RECORD_GEN == 0:
-            print("random ==", random_move)
+            file.write("random ==" + str(random_move) + '\n')
 
         game.add_move(move)
 
@@ -260,8 +234,7 @@ def play(player1, player2, generation):
 
     game.player1_turn = not game.player1_turn
     if generation % RECORD_GEN == 0:
-        game.print_board()
-        print(game.get_winner())
+        game.print_board(file)
 
     return game.get_winner
 
