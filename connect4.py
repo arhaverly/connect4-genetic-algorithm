@@ -7,7 +7,7 @@ import tensorflow as tf
 import numpy as np
 import argparse
 
-RECORD_GEN = 2
+RECORD_GEN = 20000
 
 def mutate_w_with_percent_change(p, add_sub_rand=True):
     #considering its 2d array
