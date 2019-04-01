@@ -46,41 +46,6 @@ def mutate_b_with_percent_change(p, add_sub_rand=True):
         new_p.append(temp)
     return new_p
 
-# def cross_over(w11, w12, b11, b12, w21, w22, b21, b22):
-#     new_w1 = []
-#     for i in range(len(w11)):
-#         row = []
-#         for j in range(len(w11[0])):
-#             if np.random.random_sample() > 0.5:
-#                 row.append(w11[i][j])
-#             else:
-#                 row.append(w21[i][j])
-#         new_w1.append(row)
-#     new_w2 = []
-#     for i in range(len(w12)):
-#         row = []
-#         for j in range(len(w12[0])):
-#             if np.random.random_sample() > 0.5:
-#                 row.append(w12[i][j])
-#             else:
-#                 row.append(w22[i][j])
-#         new_w2.append(row)
-#     new_b1 = []
-#     for i in range(len(b11)):
-#         if np.random.random_sample() > 0.5:
-#             new_b1.append(b11[i])
-#         else:
-#             new_b1.append(b21[i])
-
-#     new_b2 = []
-#     for i in range(len(b12)):
-#         if np.random.random_sample() > 0.5:
-#             new_b2.append(b12[i])
-#         else:
-#             new_b2.append(b22[i])
-
-#     return (new_w1, new_w2, new_b1, new_b2)
-
 def cross_over(w11, w12, w13, w14, b11, b12, b13, b14, w21, w22, w23, w24, b21, b22, b23, b24):
     new_w1 = []
     for i in range(len(w11)):
