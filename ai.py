@@ -1,7 +1,7 @@
 import random
 class AIPlayer():
 
-    def __init__(self, session, Y_index, Y_, W1, B1, W2, B2, X, generation):
+    def __init__(self, session, Y_index, Y_, W1, B1, W2, B2, W3, B3, W4, B4, X, generation):
 
         self.session = session
         self.Y_index = Y_index
@@ -10,6 +10,10 @@ class AIPlayer():
         self.B1 = B1
         self.W2 = W2
         self.B2 = B2
+        self.W3 = W3
+        self.B3 = B3
+        self.W4 = W4
+        self.B4 = B4
         self.X = X
         self.epsilon = 10000 - generation
 
@@ -30,7 +34,7 @@ class AIPlayer():
             random_move = True
             # print('random: ', end='')
         else:
-            move, p, w1, b1, w2, b2 = self.session.run([self.Y_index, self.Y_, self.W1, self.B1, self.W2, self.B2], feed_dict={self.X:[inputs]})
+            move, p, w1, b1, w2, b2, w3, b3, w4, b4 = self.session.run([self.Y_index, self.Y_, self.W1, self.B1, self.W2, self.B2, self.W3, self.B3, self.W4, self.B4], feed_dict={self.X:[inputs]})
             random_move = False
             # print('prediction: ', end='')
 
