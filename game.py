@@ -30,10 +30,6 @@ class Game():
     def game_over(self):
         return self.vertical_win() or self.horizontal_win() or self.diagonal_win() or self.board_full()
 
-
-    def get_winner(self):
-        return self.player1_turn
-
     def is_valid_move(self, move):
         if move < 0 or move > 6:
             return False

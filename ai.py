@@ -15,7 +15,6 @@ class AIPlayer():
         self.W4 = W4
         self.B4 = B4
         self.X = X
-        self.epsilon = 10000 - generation
 
     def get_move(self, game):
         inputs = [col/2 for row in game.board for col in row]
@@ -25,19 +24,10 @@ class AIPlayer():
                     item = 1
                 if item == 1:
                     item = 0.5
-        
-        low_chance = random.randint(0, 100)
 
+        move, p, w1, b1, w2, b2, w3, b3, w4, b4 = self.session.run([self.Y_index, self.Y_, self.W1, self.B1, self.W2, self.B2, self.W3, self.B3, self.W4, self.B4], feed_dict={self.X:[inputs]})
 
-        if random.randint(0, 20000) < self.epsilon or low_chance < 5:
-            move = random.randint(0, 6)
-            random_move = True
-            # print('random: ', end='')
-        else:
-            move, p, w1, b1, w2, b2, w3, b3, w4, b4 = self.session.run([self.Y_index, self.Y_, self.W1, self.B1, self.W2, self.B2, self.W3, self.B3, self.W4, self.B4], feed_dict={self.X:[inputs]})
-            random_move = False
-            # print('prediction: ', end='')
 
         # move = int(move)
-        return int(move), random_move
+        return int(move)
 
