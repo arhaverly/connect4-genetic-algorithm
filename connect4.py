@@ -7,7 +7,9 @@ import tensorflow as tf
 import numpy as np
 import argparse
 
-RECORD_GEN = 5000
+from tensorflow.python.saved_model.signature_def_utils_impl import predict_signature_def
+
+RECORD_GEN = 1
 
 def mutate_w_with_percent_change(p, add_sub_rand=True):
     #considering its 2d array
@@ -119,7 +121,7 @@ def cross_over(w11, w12, w13, w14, b11, b12, b13, b14, w21, w22, w23, w24, b21, 
     
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--path', nargs='?')
+    parser.add_argument('-r', '--restore', action='store_true')
 
     args = parser.parse_args()
 
@@ -130,6 +132,8 @@ def main():
     MAX_GEN = 10000
     N_EPISODE = 10
     is_training_finished = False
+
+
 
     graph = tf.Graph()
     with graph.as_default():
@@ -181,9 +185,25 @@ def main():
         init = tf.global_variables_initializer()
         saver = tf.train.Saver(max_to_keep=POPULATION_SIZE)
 
-    if args.path is None:
+        
+    if args.restore is False:
         sessions = [tf.Session(graph=graph) for _ in range(POPULATION_SIZE)]
-    
+    else:
+        sessions = []
+        tf.reset_default_graph() 
+
+        # imported_meta = tf.train.import_meta_graph("game_checkpoints/20.meta")  
+        # with tf.Session() as sess:
+        # sess = tf.Session()
+        # imported_meta = tf.train.import_meta_graph("game_checkpoints/20.meta")  
+        # imported_meta.restore(sess, tf.train.latest_checkpoint('game_checkpoints/'))
+        # sess.run(init)
+        # sessions.append(sess)
+        with tf.Session(graph=graph) as sess:
+            tf.saved_model.loader.load(sess, ['0'], 'game_checkpoints')
+
+
+    # print(sessions)
 
     for sess in sessions:
         sess.run(init)
@@ -273,131 +293,53 @@ def main():
 
             new_sessions.append(sess)
 
-        #9
-        for index in range(0, POPULATION_SIZE//4-1):
-            sess = tf.Session(graph=graph)
-            sess.run(init)
-            w11_, w12_, w13_, w14_, b11_, b12_, b13_, b14_ = sessions[index].run([W1, W2, W3, W4, B1, B2, B3, B4])
-            w21_, w22_, w23_, w24_, b21_, b22_, b23_, b24_ = sessions[index+1].run([W1, W2, W3, W4, B1, B2, B3, B4])
+        for i in range(1, 5):
+            for index in range(0, POPULATION_SIZE//4-i):
+                sess = tf.Session(graph=graph)
+                sess.run(init)
+                w11_, w12_, w13_, w14_, b11_, b12_, b13_, b14_ = sessions[index].run([W1, W2, W3, W4, B1, B2, B3, B4])
+                w21_, w22_, w23_, w24_, b21_, b22_, b23_, b24_ = sessions[index+i].run([W1, W2, W3, W4, B1, B2, B3, B4])
 
-            w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
+                w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
+                
+                if np.random.random_sample() < W_MUTATION_PROBABILITY:
+                    w1_, w2_, w3_, w4_ = sessions[index].run([W1, W2, W3, W4])
+                    w1_ = mutate_w_with_percent_change(w1_)
+                    w2_ = mutate_w_with_percent_change(w2_)
+                    w3_ = mutate_w_with_percent_change(w3_)
+                    w4_ = mutate_w_with_percent_change(w4_)
+
+                if np.random.random_sample() < B_MUTATION_PROBABILITY:
+                    b1_, b2_, b3_, b4_ = sessions[index].run([B1, B2, B3, B4])
+                    b1_ = mutate_b_with_percent_change(b1_)
+                    b2_ = mutate_b_with_percent_change(b2_)
+                    b3_ = mutate_b_with_percent_change(b3_)
+                    b4_ = mutate_b_with_percent_change(b4_)
+
+                sess.run([W1_assign, W2_assign, W3_assign, W4_assign, B1_assign, B2_assign, B3_assign, B4_assign], 
+                        feed_dict={W1_placeholder:w1_, W2_placeholder:w2_, W3_placeholder:w3_, W4_placeholder:w4_, B1_placeholder:b1_, B2_placeholder:b2_, B3_placeholder:b3_, B4_placeholder:b4_})
+
+                new_sessions.append(sess)
+
+
+        if generation_counter % RECORD_GEN == 0:
+            print("Generation #" + str(generation_counter))
+        #     builder = tf.saved_model.builder.SavedModelBuilder('builds')
+        #     signature = predict_signature_def(inputs={'myInput': W1},
+        #                                       outputs={'myOutput': A1})
+        #     # using custom tag instead of: tags=[tag_constants.SERVING]
+        #     sess = sessions[0]
+        #     builder.add_meta_graph_and_variables(sess=sess,
+        #                                          tags=['0'],
+        #                                          signature_def_map={'predict': signature})
+        #     builder.save()
             
-            if np.random.random_sample() < W_MUTATION_PROBABILITY:
-                w1_, w2_, w3_, w4_ = sessions[index].run([W1, W2, W3, W4])
-                w1_ = mutate_w_with_percent_change(w1_)
-                w2_ = mutate_w_with_percent_change(w2_)
-                w3_ = mutate_w_with_percent_change(w3_)
-                w4_ = mutate_w_with_percent_change(w4_)
-
-            if np.random.random_sample() < B_MUTATION_PROBABILITY:
-                b1_, b2_, b3_, b4_ = sessions[index].run([B1, B2, B3, B4])
-                b1_ = mutate_b_with_percent_change(b1_)
-                b2_ = mutate_b_with_percent_change(b2_)
-                b3_ = mutate_b_with_percent_change(b3_)
-                b4_ = mutate_b_with_percent_change(b4_)
-
-            sess.run([W1_assign, W2_assign, W3_assign, W4_assign, B1_assign, B2_assign, B3_assign, B4_assign], 
-                    feed_dict={W1_placeholder:w1_, W2_placeholder:w2_, W3_placeholder:w3_, W4_placeholder:w4_, B1_placeholder:b1_, B2_placeholder:b2_, B3_placeholder:b3_, B4_placeholder:b4_})
-
-            new_sessions.append(sess)
-
-        #8
-        for index in range(0, POPULATION_SIZE//4-2):
-            sess = tf.Session(graph=graph)
-            sess.run(init)
-            w11_, w12_, w13_, w14_, b11_, b12_, b13_, b14_ = sessions[index].run([W1, W2, W3, W4, B1, B2, B3, B4])
-            w21_, w22_, w23_, w24_, b21_, b22_, b23_, b24_ = sessions[index+2].run([W1, W2, W3, W4, B1, B2, B3, B4])
-
-            w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
-            
-            if np.random.random_sample() < W_MUTATION_PROBABILITY:
-                w1_, w2_, w3_, w4_ = sessions[index].run([W1, W2, W3, W4])
-                w1_ = mutate_w_with_percent_change(w1_)
-                w2_ = mutate_w_with_percent_change(w2_)
-                w3_ = mutate_w_with_percent_change(w3_)
-                w4_ = mutate_w_with_percent_change(w4_)
-
-            if np.random.random_sample() < B_MUTATION_PROBABILITY:
-                b1_, b2_, b3_, b4_ = sessions[index].run([B1, B2, B3, B4])
-                b1_ = mutate_b_with_percent_change(b1_)
-                b2_ = mutate_b_with_percent_change(b2_)
-                b3_ = mutate_b_with_percent_change(b3_)
-                b4_ = mutate_b_with_percent_change(b4_)
-
-            sess.run([W1_assign, W2_assign, W3_assign, W4_assign, B1_assign, B2_assign, B3_assign, B4_assign], 
-                    feed_dict={W1_placeholder:w1_, W2_placeholder:w2_, W3_placeholder:w3_, W4_placeholder:w4_, B1_placeholder:b1_, B2_placeholder:b2_, B3_placeholder:b3_, B4_placeholder:b4_})
-
-            new_sessions.append(sess)
-
-        #7
-        for index in range(0, POPULATION_SIZE//4-3):
-            sess = tf.Session(graph=graph)
-            sess.run(init)
-            w11_, w12_, w13_, w14_, b11_, b12_, b13_, b14_ = sessions[index].run([W1, W2, W3, W4, B1, B2, B3, B4])
-            w21_, w22_, w23_, w24_, b21_, b22_, b23_, b24_ = sessions[index+3].run([W1, W2, W3, W4, B1, B2, B3, B4])
-
-            w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
-            
-            if np.random.random_sample() < W_MUTATION_PROBABILITY:
-                w1_, w2_, w3_, w4_ = sessions[index].run([W1, W2, W3, W4])
-                w1_ = mutate_w_with_percent_change(w1_)
-                w2_ = mutate_w_with_percent_change(w2_)
-                w3_ = mutate_w_with_percent_change(w3_)
-                w4_ = mutate_w_with_percent_change(w4_)
-
-            if np.random.random_sample() < B_MUTATION_PROBABILITY:
-                b1_, b2_, b3_, b4_ = sessions[index].run([B1, B2, B3, B4])
-                b1_ = mutate_b_with_percent_change(b1_)
-                b2_ = mutate_b_with_percent_change(b2_)
-                b3_ = mutate_b_with_percent_change(b3_)
-                b4_ = mutate_b_with_percent_change(b4_)
-
-            sess.run([W1_assign, W2_assign, W3_assign, W4_assign, B1_assign, B2_assign, B3_assign, B4_assign], 
-                    feed_dict={W1_placeholder:w1_, W2_placeholder:w2_, W3_placeholder:w3_, W4_placeholder:w4_, B1_placeholder:b1_, B2_placeholder:b2_, B3_placeholder:b3_, B4_placeholder:b4_})
-
-            new_sessions.append(sess)
-
-        #6
-        for index in range(0, POPULATION_SIZE//4-4):
-            sess = tf.Session(graph=graph)
-            sess.run(init)
-            w11_, w12_, w13_, w14_, b11_, b12_, b13_, b14_ = sessions[index].run([W1, W2, W3, W4, B1, B2, B3, B4])
-            w21_, w22_, w23_, w24_, b21_, b22_, b23_, b24_ = sessions[index+4].run([W1, W2, W3, W4, B1, B2, B3, B4])
-
-            w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
-            
-            if np.random.random_sample() < W_MUTATION_PROBABILITY:
-                w1_, w2_, w3_, w4_ = sessions[index].run([W1, W2, W3, W4])
-                w1_ = mutate_w_with_percent_change(w1_)
-                w2_ = mutate_w_with_percent_change(w2_)
-                w3_ = mutate_w_with_percent_change(w3_)
-                w4_ = mutate_w_with_percent_change(w4_)
-
-            if np.random.random_sample() < B_MUTATION_PROBABILITY:
-                b1_, b2_, b3_, b4_ = sessions[index].run([B1, B2, B3, B4])
-                b1_ = mutate_b_with_percent_change(b1_)
-                b2_ = mutate_b_with_percent_change(b2_)
-                b3_ = mutate_b_with_percent_change(b3_)
-                b4_ = mutate_b_with_percent_change(b4_)
-
-            sess.run([W1_assign, W2_assign, W3_assign, W4_assign, B1_assign, B2_assign, B3_assign, B4_assign], 
-                    feed_dict={W1_placeholder:w1_, W2_placeholder:w2_, W3_placeholder:w3_, W4_placeholder:w4_, B1_placeholder:b1_, B2_placeholder:b2_, B3_placeholder:b3_, B4_placeholder:b4_})
-
-            new_sessions.append(sess)
-
+        #     file.close()
 
         for sess in sessions:
             sess.close()
 
         sessions = new_sessions
-
-        if generation_counter % RECORD_GEN == 0:
-            for i, sess in enumerate(sessions):
-                saver.save(sess, 'game_checkpoints/' + str(i))
-            
-            file.close()
-
-
 
 
 def play(player1, player2, generation, file):
