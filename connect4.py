@@ -48,76 +48,39 @@ def mutate_b_with_percent_change(p, add_sub_rand=True):
         new_p.append(temp)
     return new_p
 
-def cross_over(w11, w12, w13, w14, b11, b12, b13, b14, w21, w22, w23, w24, b21, b22, b23, b24):
-    new_w1 = []
-    for i in range(len(w11)):
-        row = []
-        for j in range(len(w11[0])):
-            if np.random.random_sample() > 0.5:
-                row.append(w11[i][j])
-            else:
-                row.append(w21[i][j])
-        new_w1.append(row)
 
-    new_w2 = []
-    for i in range(len(w12)):
-        row = []
-        for j in range(len(w12[0])):
-            if np.random.random_sample() > 0.5:
-                row.append(w12[i][j])
-            else:
-                row.append(w22[i][j])
-        new_w2.append(row)
+def cross_over(weights, biases):
+    new_weights = []
+    for w1, w2 in weights:
+        new_w = []
+        len_w1 = len(w1)
+        for i in range(len_w1):
+            row = []
+            len_w1_0 = len(w1[0])
+            for j in range(len_w1_0):
+                if np.random.random_sample() > 0.5:
+                    row.append(w1[i][j])
+                else:
+                    row.append(w2[i][j])
+            new_w.append(row)
 
-    new_w3 = []
-    for i in range(len(w13)):
-        row = []
-        for j in range(len(w13[0])):
-            if np.random.random_sample() > 0.5:
-                row.append(w13[i][j])
-            else:
-                row.append(w23[i][j])
-        new_w3.append(row)
-
-    new_w4 = []
-    for i in range(len(w14)):
-        row = []
-        for j in range(len(w14[0])):
-            if np.random.random_sample() > 0.5:
-                row.append(w14[i][j])
-            else:
-                row.append(w24[i][j])
-        new_w4.append(row)
+        new_weights.append(new_w)
     
-    new_b1 = []
-    for i in range(len(b11)):
-        if np.random.random_sample() > 0.5:
-            new_b1.append(b11[i])
-        else:
-            new_b1.append(b21[i])
+    new_biases = []
 
-    new_b2 = []
-    for i in range(len(b12)):
-        if np.random.random_sample() > 0.5:
-            new_b2.append(b12[i])
-        else:
-            new_b2.append(b22[i])
+    for b1, b2 in biases:
+        new_b = []
+        len_b1 = len(b1)
+        for i in range(len_b1):
+            if np.random.random_sample() > 0.5:
+                new_b.append(b1[i])
+            else:
+                new_b.append(b2[i])
 
-    new_b3 = []
-    for i in range(len(b13)):
-        if np.random.random_sample() > 0.5:
-            new_b3.append(b13[i])
-        else:
-            new_b3.append(b23[i])
+        new_biases.append(new_b)
 
-    new_b4 = []
-    for i in range(len(b14)):
-        if np.random.random_sample() > 0.5:
-            new_b4.append(b14[i])
-        else:
-            new_b4.append(b24[i])
 
-    return (new_w1, new_w2, new_w3, new_w4, new_b1, new_b2, new_b3, new_b4)
+    return new_weights, new_biases
     
 def main():
     parser = argparse.ArgumentParser()
@@ -272,7 +235,12 @@ def main():
             w11_, w12_, w13_, w14_, b11_, b12_, b13_, b14_ = sessions[index].run([W1, W2, W3, W4, B1, B2, B3, B4])
             w21_, w22_, w23_, w24_, b21_, b22_, b23_, b24_ = sessions[index*2].run([W1, W2, W3, W4, B1, B2, B3, B4])
 
-            w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
+            weights = [[w11_, w21_], [w12_, w22_], [w13_, w23_], [w14_, w24_]]
+            biases = [[b11_, b21_], [b12_, b22_], [b13_, b23_], [b14_, b24_]]
+            new_weights, new_biases = cross_over(weights, biases)
+            w1_, w2_, w3_, w4_ = new_weights
+            b1_, b2_, b3_, b4_ = new_biases
+            # w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
             
             if np.random.random_sample() < W_MUTATION_PROBABILITY:
                 w1_, w2_, w3_, w4_ = sessions[index].run([W1, W2, W3, W4])
@@ -300,7 +268,12 @@ def main():
                 w11_, w12_, w13_, w14_, b11_, b12_, b13_, b14_ = sessions[index].run([W1, W2, W3, W4, B1, B2, B3, B4])
                 w21_, w22_, w23_, w24_, b21_, b22_, b23_, b24_ = sessions[index+i].run([W1, W2, W3, W4, B1, B2, B3, B4])
 
-                w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
+                weights = [[w11_, w21_], [w12_, w22_], [w13_, w23_], [w14_, w24_]]
+                biases = [[b11_, b21_], [b12_, b22_], [b13_, b23_], [b14_, b24_]]
+                new_weights, new_biases = cross_over(weights, biases)
+                w1_, w2_, w3_, w4_ = new_weights
+                b1_, b2_, b3_, b4_ = new_biases
+                # w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
                 
                 if np.random.random_sample() < W_MUTATION_PROBABILITY:
                     w1_, w2_, w3_, w4_ = sessions[index].run([W1, W2, W3, W4])
