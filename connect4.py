@@ -240,7 +240,6 @@ def main():
             new_weights, new_biases = cross_over(weights, biases)
             w1_, w2_, w3_, w4_ = new_weights
             b1_, b2_, b3_, b4_ = new_biases
-            # w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
             
             if np.random.random_sample() < W_MUTATION_PROBABILITY:
                 w1_, w2_, w3_, w4_ = sessions[index].run([W1, W2, W3, W4])
@@ -273,7 +272,6 @@ def main():
                 new_weights, new_biases = cross_over(weights, biases)
                 w1_, w2_, w3_, w4_ = new_weights
                 b1_, b2_, b3_, b4_ = new_biases
-                # w1_, w2_, w3_, w4_, b1_, b2_, b3_, b4_ = cross_over(w11=w11_, w12=w12_, w13=w13_, w14=w14_, b11=b11_, b12=b12_, b13=b13_, b14=b14_, w21=w21_, w22=w22_, w23=w23_, w24=w24_, b21=b21_, b22=b22_, b23=b23_, b24=b24_)
                 
                 if np.random.random_sample() < W_MUTATION_PROBABILITY:
                     w1_, w2_, w3_, w4_ = sessions[index].run([W1, W2, W3, W4])
