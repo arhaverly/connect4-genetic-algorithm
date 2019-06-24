@@ -1,10 +1,10 @@
+import numpy
+
 class Game():
 
-    def __init__(self, player1, player2):
-        self.board = [[0 for _ in range(7)] for _ in range(6)]
+    def __init__(self):
+        self.board = numpy.zeros((6, 7)) #[[0 for _ in range(7)] for _ in range(6)]
         self.player1_turn = True
-        self.player1 = player1
-        self.player2 = player2
 
     def print_board(self, file):
         if self.player1_turn == True:
@@ -14,7 +14,7 @@ class Game():
 
         for row in self.board:
             for col in row:
-                file.write(str(col) + '  ')
+                file.write(str(int(col)) + '  ')
 
             file.write('\n')
 
