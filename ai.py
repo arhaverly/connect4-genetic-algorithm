@@ -17,7 +17,12 @@ class AIPlayer():
         self.X = X
 
     def get_move(self, game):
-        inputs = [col/2 for row in game.board for col in row]
+        inputs = []
+        for row in game.board:
+            for col in row:
+                print(col)
+        
+        # inputs = [col/2 for row in game.board for col in row]
         if not game.player1_turn:
             for item in inputs:
                 if item == 0.5:

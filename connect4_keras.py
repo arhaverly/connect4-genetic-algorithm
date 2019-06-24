@@ -53,20 +53,14 @@ def mutate(new_weights, model_num):
             cols = len(layer[0])
             for row in range(rows):
                 for col in range(cols):
-                    if numpy.random.random_sample() > 0.5:
-                        if numpy.random.random_sample() > 0.5:
-                            weights[layer_num][row][col] = weights[layer_num][row][col] - numpy.random.random_sample()
-                        else:
-                            weights[layer_num][row][col] = weights[layer_num][row][col] + numpy.random.random_sample()
+                    if numpy.random.random_sample() > 0.1:
+                        weights[layer_num][row][col] = numpy.random.uniform(-1, 1)
 
         else:
             cols = len(layer)
             for col in range(cols):
-                if numpy.random.random_sample() > 0.5:
-                    if numpy.random.random_sample() > 0.5:
-                        weights[layer_num][col] = weights[layer_num][col] - numpy.random.random_sample()
-                    else:
-                        weights[layer_num][col] = weights[layer_num][col] - numpy.random.random_sample()
+                if numpy.random.random_sample() > 0.1:
+                    weights[layer_num][col] = numpy.random.uniform(-1, 1)
 
     new_weights.append(weights)
 
@@ -81,7 +75,6 @@ def crossover(new_weights, model_num1, model_num2):
             cols = len(layer[0])
             for row in range(rows):
                 for col in range(cols):
-
                     if numpy.random.random_sample() > 0.5:
                         weights1[layer_num][row][col] = weights2[layer_num][row][col]
 
@@ -190,10 +183,11 @@ def play(index1, index2, file, generation):
 
         move = -1
         while not game.is_valid_move(move):
+            vector = game.board.reshape(1, 42)
             if game.player1_turn == True:
-                hypo = models[index1].predict(game.board.reshape(1,42))
+                hypo = models[index1].predict(vector)
             else:
-                hypo = models[index1].predict(game.board.reshape(1,42))
+                hypo = models[index2].predict(vector)
 
             move = index_of_max(hypo)
             if not game.is_valid_move(move):

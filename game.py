@@ -43,7 +43,7 @@ class Game():
         if self.player1_turn:
             piece = 1
         else:
-            piece = 2
+            piece = -1
         for row in self.board[::-1]:
             if row[move] == 0:
                 row[move] = piece
