@@ -14,7 +14,10 @@ class Game():
 
         for row in self.board:
             for col in row:
-                file.write(str(int(col)) + '  ')
+                c = col
+                if c == -1:
+                    c = 2
+                file.write(str(int(c)) + '  ')
 
             file.write('\n')
 
