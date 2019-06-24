@@ -53,13 +53,13 @@ def mutate(new_weights, model_num):
             cols = len(layer[0])
             for row in range(rows):
                 for col in range(cols):
-                    if numpy.random.random_sample() > 0.1:
+                    if numpy.random.random_sample() > 0.9:
                         weights[layer_num][row][col] = numpy.random.uniform(-1, 1)
 
         else:
             cols = len(layer)
             for col in range(cols):
-                if numpy.random.random_sample() > 0.1:
+                if numpy.random.random_sample() > 0.9:
                     weights[layer_num][col] = numpy.random.uniform(-1, 1)
 
     new_weights.append(weights)
