@@ -94,16 +94,13 @@ def main():
     B_MUTATION_PROBABILITY = 0.5
     MAX_GEN = 10000
     N_EPISODE = 10
-    is_training_finished = False
-
-
 
     graph = tf.Graph()
     with graph.as_default():
         num_input = 42
-        hidden_units0 = 200
+        hidden_units0 = 100
         hidden_units1 = 100
-        hidden_units2 = 50
+        hidden_units2 = 100
         num_class = 7
 
         X = tf.placeholder(tf.float32, shape=[1, num_input], name='X')
@@ -199,9 +196,6 @@ def main():
                 temp = sessions[i]
                 sessions[i] = sessions[2*i]
                 sessions[i] = temp
-
-        if is_training_finished:
-            break
 
         new_sessions = []
 
@@ -341,7 +335,6 @@ def play(player1, player2, generation, file):
         game.print_board(file)
 
     return game.player1_turn
-
 
 
 if __name__ == '__main__':
