@@ -3,7 +3,7 @@ import numpy
 class Game():
 
     def __init__(self):
-        self.board = numpy.zeros((6, 7)) #[[0 for _ in range(7)] for _ in range(6)]
+        self.board = numpy.zeros((6, 7))
         self.player1_turn = True
 
     def print_board(self, file):
